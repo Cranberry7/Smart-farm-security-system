@@ -1,0 +1,31 @@
+# Core FastAPI and web framework dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+starlette==0.27.0
+
+# Database dependencies
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
+
+# Authentication and security
+bcrypt==4.1.2
+PyJWT==2.8.0
+passlib[bcrypt]==1.7.4
+
+# Data validation and serialization
+pydantic[email]==2.5.0
+python-multipart==0.0.6
+
+# Environment configuration
+python-dotenv==1.0.0
+
+# HTTP client for dashboard
+requests==2.31.0
+
+# CORS middleware
+python-jose[cryptography]==3.3.0
+
+# Additional utilities
+python-dateutil==2.8.2
+typing-extensions==4.8.0
