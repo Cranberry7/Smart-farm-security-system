@@ -73,7 +73,7 @@ Leveraging real-time anomaly detection, device authentication, and comprehensive
 - 🟡 **Medium**: Rate limit violations, unusual patterns  
 - ⚪ **Low**: Informational security events
 
-## 🚀 Getting Started
+## Getting Started
 
 ### **Prerequisites:**
 - Python 3.8+
