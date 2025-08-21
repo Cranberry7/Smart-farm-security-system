@@ -1,24 +1,12 @@
-# Smart Farm Security & Monitoring System (IDS/IPS)
+# Smart Farm Security & Monitoring System 
 
-## 🚜 Overview
+## Overview
 
-This project has been transformed from a basic farm monitoring system into a comprehensive **Smart Farm Security & Monitoring Platform** that includes both **Intrusion Detection System (IDS)** and **Intrusion Prevention System (IPS)** capabilities specifically designed for agricultural environments.
+The Smart Farm Security & Monitoring System is an advanced platform designed to safeguard agricultural environments by integrating Intrusion Detection (IDS) and Intrusion Prevention (IPS) capabilities. Building on traditional farm monitoring, this system goes beyond environmental data tracking to proactively identify, analyze, and respond to security threats targeting farm sensors, devices, and network infrastructure.
 
-## 🛡️ Security Features
+Leveraging real-time anomaly detection, device authentication, and comprehensive security middleware, the platform provides continuous protection against both physical and cyber intrusions. It monitors sensor data integrity, detects unusual activity patterns, enforces strict access controls, and automatically mitigates risks through intelligent response mechanisms such as IP blocking and device quarantine.
 
-### **IDS (Intrusion Detection System) Components:**
-- **Real-time Anomaly Detection** - Detects unusual sensor readings and patterns
-- **Security Event Logging** - Comprehensive audit trails of all system activities
-- **Threat Intelligence** - Identifies suspicious patterns and potential security breaches
-- **Farm-Specific Monitoring** - Specialized detection for agricultural equipment and sensors
-
-### **IPS (Intrusion Prevention System) Components:**
-- **Automated Rate Limiting** - Prevents flooding and DoS attacks on sensor endpoints
-- **IP Blocking** - Automatically blocks suspicious IP addresses
-- **Device Authentication** - Validates sensors against authorized device registry
-- **Real-time Response** - Automated actions against detected threats
-
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -37,7 +25,7 @@ This project has been transformed from a basic farm monitoring system into a com
                        └─────────────────┘
 ```
 
-## 📊 Database Schema
+## Database Schema
 
 ### Core Tables:
 - **users** - User accounts and authentication
@@ -47,39 +35,7 @@ This project has been transformed from a basic farm monitoring system into a com
 - **audit_logs** - Complete system access and activity logs
 - **authorized_devices** - Registered farm devices and sensors
 
-## 🔧 API Endpoints
-
-### **Authentication** (`/auth`)
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User authentication with JWT
-
-### **Sensor Data** (`/sensor`)
-- `POST /sensor/add` - Add sensor reading (with real-time anomaly detection)
-- `GET /sensor/` - Retrieve all sensor data
-- `GET /sensor/status` - API health check
-
-### **Security Monitoring** (`/security`)
-- `GET /security/events` - Retrieve security events (filtering by severity/status)
-- `GET /security/alerts` - Get threat alerts
-- `GET /security/audit-logs` - Access audit trail
-- `GET /security/summary` - Security dashboard summary
-- `POST /security/analyze-sensor/{id}` - Run anomaly analysis on specific sensor
-- `POST /security/analyze-all` - Full system security analysis
-- `GET /security/statistics` - Security metrics and trends
-- `GET /security/threat-sources` - Top threat IP addresses
-
-### **Device Management** (`/devices`)
-- `POST /devices/register` - Register authorized farm device
-- `GET /devices/` - List authorized devices
-- `PATCH /devices/{id}/status` - Update device status (quarantine/suspicious)
-- `GET /devices/security/unauthorized-sensors` - Detect unauthorized devices
-- `GET /devices/health/status` - Device health monitoring
-
-### **User Management** (`/users`)
-- `GET /users/` - List users
-- `POST /users/add_user` - Add new user
-
-## 🔒 Security Features in Detail
+## Security Features in Detail
 
 ### **Anomaly Detection Engine**
 - **Temperature Anomalies**: Critical high (>45°C), Critical low (<-10°C)
@@ -101,7 +57,7 @@ This project has been transformed from a basic farm monitoring system into a com
 - **Unauthorized Device Detection** - Automatic identification of rogue sensors
 - **Health Monitoring** - Device connectivity and status tracking
 
-## 📈 Monitoring & Alerting
+## Monitoring & Alerting
 
 ### **Security Dashboard Features:**
 - Real-time threat level assessment
@@ -117,7 +73,7 @@ This project has been transformed from a basic farm monitoring system into a com
 - 🟡 **Medium**: Rate limit violations, unusual patterns  
 - ⚪ **Low**: Informational security events
 
-## 🚀 Getting Started
+## Getting Started
 
 ### **Prerequisites:**
 - Python 3.8+
@@ -166,7 +122,7 @@ python app/dashboard.py
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## 🧪 Testing Security Features
+## Testing Security Features
 
 ### **Test Anomaly Detection:**
 ```bash
@@ -210,7 +166,7 @@ curl -X POST "http://localhost:8000/devices/register" \
 curl "http://localhost:8000/devices/security/unauthorized-sensors"
 ```
 
-## 📊 Key Metrics
+## Key Metrics
 
 The system tracks and provides analytics on:
 - **Security Events**: Total events, severity distribution, trends
@@ -219,7 +175,7 @@ The system tracks and provides analytics on:
 - **System Performance**: API response times, data processing rates
 - **Anomaly Detection**: Detection accuracy, false positive rates
 
-## 🔧 Configuration
+## Configuration
 
 ### **Security Thresholds** (in `anomaly_detection.py`):
 - Temperature: Critical (-10°C to 45°C), Warning (5°C to 35°C)
@@ -229,31 +185,9 @@ The system tracks and provides analytics on:
 ### **IPS Actions**:
 - Automatic IP blocking after 5 rate limit violations
 - Device quarantine for repeated anomalies
-- Login lockout after 10 failed attempts
+- Login lockout after 10 failed attempts 
 
-## 🏅 Project Accomplishments
-
-✅ **Complete IDS/IPS Implementation**  
-✅ **Real-time Security Monitoring**  
-✅ **Automated Threat Response**  
-✅ **Farm-Specific Security Rules**  
-✅ **Comprehensive Audit Logging**  
-✅ **Device Authentication System**  
-✅ **Advanced Anomaly Detection**  
-✅ **Interactive Security Dashboard**  
-✅ **RESTful API with Security Integration**  
-✅ **Production-Ready Architecture**  
-
-## 🎯 Use Cases
-
-This system is perfect for:
-- **Smart Agriculture** - Protecting farm IoT infrastructure
-- **Greenhouse Monitoring** - Securing climate control systems
-- **Livestock Management** - Monitoring animal welfare sensors
-- **Irrigation Systems** - Protecting water management networks
-- **Farm Equipment** - Securing connected agricultural machinery
-
-## 🔮 Future Enhancements
+## Future Enhancements
 
 Potential expansions include:
 - Machine learning-based anomaly detection
@@ -264,5 +198,3 @@ Potential expansions include:
 - Multi-farm management capabilities
 
 ---
-
-**This Smart Farm Security & Monitoring System demonstrates a complete understanding of cybersecurity principles applied to agricultural technology, showcasing both IDS and IPS capabilities in a real-world context.**
