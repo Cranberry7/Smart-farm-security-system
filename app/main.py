@@ -1,15 +1,27 @@
 from fastapi import FastAPI
 from app.routes import auth, sensor, user_routes, security, devices  # Import routes
-from app.database import engine
+from app.database import engine, SessionLocal
 from app import models  # Ensure models are imported
 from fastapi.middleware.cors import CORSMiddleware
 from app.security_middleware import SecurityMiddleware
+from app.anomaly_detection import anomaly_detector
 
 # Ensure tables are created in the database
 models.Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    """Train the anomaly detection model on startup"""
+    db = SessionLocal()
+    try:
+        print("Training anomaly detection model...")
+        anomaly_detector.train_model(db)
+        print("Anomaly detection model training complete.")
+    finally:
+        db.close()
 
 # Include route modules
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])

@@ -5,6 +5,13 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from . import models, schemas
 
+# Import ML libraries
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import percentileofscore
+
 class AnomalyDetector:
     """Farm-specific anomaly detection engine for IDS functionality"""
     
@@ -33,10 +40,119 @@ class AnomalyDetector:
             "login_attempts_per_hour": 10
         }
 
+        # ML model for anomaly detection
+        self.model = IsolationForest(contamination='auto', random_state=42)
+        self.scaler = StandardScaler()
+        self.model_trained = False
+        self.training_scores = []
+
+    def train_model(self, db: Session):
+        """Train the anomaly detection model with historical data"""
+        historical_data = self._prepare_data_for_training(db)
+        
+        if len(historical_data) < 100:
+            # Not enough data to train a reliable model
+            self.model_trained = False
+            return
+
+        # Prepare data and train the model
+        df = pd.DataFrame(historical_data)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        
+        # Feature engineering
+        df['hour_of_day'] = df['timestamp'].dt.hour
+        df['day_of_week'] = df['timestamp'].dt.dayofweek
+        
+        features = df[['temperature', 'humidity', 'hour_of_day', 'day_of_week']]
+        self.scaler.fit(features)
+        scaled_features = self.scaler.transform(features)
+        
+        self.model.fit(scaled_features)
+        self.training_scores = self.model.decision_function(scaled_features)
+        self.model_trained = True
+
+    def _prepare_data_for_training(self, db: Session, days: int = 30) -> List[Dict[str, Any]]:
+        """Fetch and prepare historical data for model training"""
+        time_threshold = datetime.utcnow() - timedelta(days=days)
+        
+        # Fetch historical data from the database
+        readings = db.query(models.SensorData).filter(
+            models.SensorData.timestamp >= time_threshold
+        ).all()
+        
+        # Convert to a list of dictionaries
+        return [
+            {
+                "temperature": r.temperature,
+                "humidity": r.humidity,
+                "timestamp": r.timestamp
+            }
+            for r in readings
+        ]
+
     def detect_sensor_anomalies(self, db: Session, sensor_data: models.SensorData) -> List[schemas.AnomalyDetectionResult]:
-        """Detect anomalies in individual sensor readings"""
+        """Detect anomalies using the ML model or fallback to rule-based system"""
+        if not self.model_trained:
+            # Fallback to the old rule-based system if the model is not trained
+            return self._detect_anomalies_rule_based(db, sensor_data)
+
+        # Use the ML model for anomaly detection
+        return self._detect_anomalies_ml(db, sensor_data)
+
+    def _detect_anomalies_ml(self, db: Session, sensor_data: models.SensorData) -> List[schemas.AnomalyDetectionResult]:
+        """Detect anomalies using the trained Isolation Forest model"""
         anomalies = []
         current_time = datetime.utcnow()
+
+        # Prepare the input for the model
+        df = pd.DataFrame([{
+            "temperature": sensor_data.temperature,
+            "humidity": sensor_data.humidity,
+            "timestamp": current_time
+        }])
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df['hour_of_day'] = df['timestamp'].dt.hour
+        df['day_of_week'] = df['timestamp'].dt.dayofweek
+
+        features = df[['temperature', 'humidity', 'hour_of_day', 'day_of_week']]
+        scaled_features = self.scaler.transform(features)
+
+        # Predict anomaly (-1 for anomalies, 1 for normal)
+        prediction = self.model.predict(scaled_features)
+
+        if prediction[0] == -1:
+            # Anomaly detected by the model
+            score = self.model.decision_function(scaled_features)[0]
+            
+            # Calculate confidence based on the percentile of the score in the distribution of anomaly scores
+            anomaly_scores = self.training_scores[self.training_scores < 0]
+            if len(anomaly_scores) > 0:
+                confidence = 1 - (percentileofscore(anomaly_scores, score) / 100)
+            else:
+                confidence = 1.0 # No anomalies in training data
+
+            confidence = np.clip(confidence, 0, 1) # Ensure confidence is within [0, 1]
+
+            anomaly = schemas.AnomalyDetectionResult(
+                sensor_id=sensor_data.sensor_id,
+                anomaly_type="ml_detected_anomaly",
+                severity="medium",
+                current_value=f"Temp: {sensor_data.temperature}°C, Humidity: {sensor_data.humidity}%",
+                expected_range="Normal operating conditions",
+                confidence=confidence,
+                timestamp=current_time
+            )
+            anomalies.append(anomaly)
+
+        # Also run other checks like rapid changes and data flooding
+        rapid_change_anomalies = self._detect_rapid_changes(db, sensor_data)
+        anomalies.extend(rapid_change_anomalies)
+
+        return anomalies
+
+    def _detect_anomalies_rule_based(self, db: Session, sensor_data: models.SensorData) -> List[schemas.AnomalyDetectionResult]:
+        """Original rule-based anomaly detection"""
+        anomalies = []
         
         # Temperature anomaly detection
         temp_anomaly = self._check_temperature_anomaly(sensor_data.temperature, sensor_data.sensor_id)
