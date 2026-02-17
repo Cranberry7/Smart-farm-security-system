@@ -9,19 +9,21 @@ This document explains how to connect the Flutter frontend to the FastAPI backen
 
 ## Configuration
 
-### Update API Base URL
+### Automatic Platform Detection
 
-The API base URL is configured in `lib/services/api_service.dart`:
+The API base URL is now **automatically configured** based on the platform:
 
-```dart
-static const String baseUrl = 'http://localhost:8000';
+- **Android Emulator**: `http://10.0.2.2:8000` (automatically detected)
+- **iOS Simulator**: `http://localhost:8000` (automatically detected)
+- **Physical Device/Other**: `http://192.168.56.1:8000` (default fallback)
+
+### Manual Override for Physical Devices
+
+If you're testing on a physical device, you can manually override the base URL:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000
 ```
-
-### For Different Environments:
-
-- **Android Emulator**: Use `http://10.0.2.2:8000` (Android emulator maps localhost to this)
-- **iOS Simulator**: Use `http://localhost:8000` (works as-is)
-- **Physical Device**: Use your computer's IP address, e.g., `http://192.168.1.100:8000`
 
 To find your computer's IP:
 - **Windows**: Run `ipconfig` in CMD and look for IPv4 Address
@@ -64,6 +66,7 @@ To find your computer's IP:
 - `GET /security/summary` - Get security summary
 - `GET /security/alerts` - Get threat alerts
 - `GET /devices/` - Get all devices
+- `GET /users/me` - Get current authenticated user profile
 - `GET /users/` - Get users (for profile)
 
 ## Testing the Connection

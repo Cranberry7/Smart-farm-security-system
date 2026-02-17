@@ -1,13 +1,36 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import '../services/token_storage.dart';
 
 class ApiService {
-  // Update this to match your backend URL
-  static const String baseUrl = 'http://192.168.56.1:8000';
-  // For Android emulator, use: 'http://10.0.2.2:8000'
-  // For iOS simulator, use: 'http://localhost:8000'
-  // For physical device, use your computer's IP: 'http://192.168.x.x:8000'
+  // Platform-aware base URL configuration
+  static String get baseUrl {
+    // Manual override for physical devices
+    // To use: flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000
+    const String manualOverride = String.fromEnvironment('API_BASE_URL');
+    if (manualOverride.isNotEmpty) {
+      return manualOverride;
+    }
+    
+    // Auto-detect platform
+    try {
+      if (Platform.isAndroid) {
+        // Android emulator maps localhost to 10.0.2.2
+        return 'http://10.0.2.2:8000';
+      } else if (Platform.isIOS) {
+        // iOS simulator can use localhost directly
+        return 'http://localhost:8000';
+      } else {
+        // Default for physical devices or other platforms
+        // Update this IP to match your computer's IP on the local network
+        return 'http://192.168.56.1:8000';
+      }
+    } catch (e) {
+      // Fallback if platform detection fails
+      return 'http://192.168.56.1:8000';
+    }
+  }
 
   final TokenStorage _tokenStorage = TokenStorage();
 
@@ -188,23 +211,21 @@ class ApiService {
     return json.decode(response.body);
   }
 
-  // Get current user info (if available)
-  // Note: This assumes you have a /users/me endpoint or similar
-  // If not available, we'll decode the token to get user_id
+  // Get current user info from /users/me endpoint
   Future<Map<String, dynamic>?> getCurrentUser() async {
-    // Try to get user info from token or API
-    // For now, return null and we'll handle it in the UI
     try {
-      final users = await getUsers();
-      // This is a workaround - ideally backend should have /users/me endpoint
-      // For now, we'll get the first user or handle it differently
-      if (users.isNotEmpty) {
-        return users[0] as Map<String, dynamic>;
-      }
+      final url = Uri.parse('$baseUrl/users/me');
+      final response = await http.get(
+        url,
+        headers: await _getHeaders(),
+      );
+
+      _handleError(response);
+      return json.decode(response.body);
     } catch (e) {
-      print('Error fetching user: $e');
+      print('Error fetching current user: $e');
+      return null;
     }
-    return null;
   }
 }
 
